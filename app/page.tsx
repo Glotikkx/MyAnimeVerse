@@ -3,6 +3,7 @@ import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 
+
 export default function Home() {
   // State to manage visibility of each dropdown
   const [animeOpen, setAnimeOpen] = useState(false);
@@ -61,11 +62,9 @@ export default function Home() {
             <div className="absolute left-0 text-black dark:text-white border p-4 mt-2 w-48 rounded-lg shadow-lg">
               <ul className="space-y-2">
                 <li>
-                  <Link href="/manga/manga1">Top Manga</Link>
+                  <Link href="/manga/top-manga">Top Manga</Link>
                 </li>
-                <li>
-                  <Link href="/manga/manga2">Currently Airing</Link>
-                </li>
+                
               </ul>
             </div>
           )}
@@ -83,7 +82,7 @@ export default function Home() {
             <div className="absolute left-0  text-black dark:text-white border p-4 mt-2 w-48 rounded-lg shadow-lg">
               <ul className="space-y-2">
                 <li>
-                  <Link href="/manwha/manwha1">Manwha</Link>
+                  <Link href="/manwha">Manwha</Link>
                 </li>
               </ul>
             </div>
@@ -93,6 +92,6 @@ export default function Home() {
       
       
     </div>
-    
   );
 }
+
