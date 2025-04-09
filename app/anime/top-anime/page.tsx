@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
 
@@ -12,12 +12,21 @@ type TopAnime = {
 
 export default function TopAnimePage() {
   const [topAnime, setTopAnime] = useState<TopAnime[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [hasNextPage, setHasNextPage] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const observerRef = useRef<HTMLDivElement | null>(null);
+  
 
   useEffect(() => {
-    const fetchTopAnime = async () => {
+    const fetchTopAnime = async (page: number) => {
       const query = `
-        query {
-          Page(perPage: 30) {
+        query ($page: Int) {
+          Page(page: $page, perPage: 30) {
+            pageInfo {
+              currentPage
+              hasNextPage
+            }
             media(type: ANIME, sort: SCORE_DESC) {
               id
               title {
@@ -33,36 +42,52 @@ export default function TopAnimePage() {
       `;
 
       try {
+        setLoading(true);
+
         const res = await fetch("https://graphql.anilist.co", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ query }),
+          body: JSON.stringify({ query, variables: { page } }),
         });
 
         const data = await res.json();
 
-        type AnimeAPIResponse = {
-          id: number;
-          title: { romaji: string };
-          averageScore: number;
-          coverImage: { large: string };
-        };
-
-        const parsed = data.data.Page.media.map((anime: AnimeAPIResponse) => ({
+        const newAnime = data.data.Page.media.map((anime: { id: number; title: { romaji: string }; averageScore: number; coverImage: { large: string } }) => ({
           id: anime.id,
           title: anime.title.romaji,
           score: anime.averageScore,
           image: anime.coverImage.large,
         }));
 
-        setTopAnime(parsed);
+        setTopAnime((prev) => [...prev, ...newAnime]);
+        setHasNextPage(data.data.Page.pageInfo.hasNextPage);
       } catch (err) {
         console.error("Failed to fetch top anime:", err);
+      } finally {
+        setLoading(false);
       }
     };
 
-    fetchTopAnime();
-  }, []);
+    fetchTopAnime(currentPage);
+  }, [currentPage]);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasNextPage && !loading) {
+          setCurrentPage((prev) => prev + 1);
+        }
+      },
+      { rootMargin: "100px" }
+    );
+
+    const currentRef = observerRef.current;
+    if (currentRef) observer.observe(currentRef);
+
+    return () => {
+      if (currentRef) observer.unobserve(currentRef);
+    };
+  }, [hasNextPage, loading]);
 
   return (
     <div className="p-6 bg-gray-900 text-white min-h-screen">
@@ -96,6 +121,12 @@ export default function TopAnimePage() {
           </motion.div>
         ))}
       </div>
+
+      <div ref={observerRef} className="h-10 mt-10" />
+
+      {loading && (
+        <div className="text-center text-gray-400 mt-4">Loading more anime...</div>
+      )}
     </div>
   );
 }
