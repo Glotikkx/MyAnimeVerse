@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "MyAnimeVerse",
-  description: "this is my anime list",
+  description: "mal copy",
 };
 
 export default function RootLayout({
