@@ -18,6 +18,11 @@ export default function TopManhwaPage() {
 
   useEffect(() => {
     const fetchManhwa = async () => {
+      const res = await fetch(`https://api.mangadex.org/...`);
+const json = await res.json();
+
+console.log("MangaDex returned:", json);
+
       try {
         setLoading(true);
 
@@ -90,6 +95,10 @@ export default function TopManhwaPage() {
               className="rounded-md object-cover mb-2"
             />
             <h2 className="text-sm font-medium">{title}</h2>
+            {manhwaList.length === 0 && !loading && (
+            <p className="text-center text-red-400">No manhwa found or data failed to load.</p>
+          )}
+
           </motion.div>
         ))}
       </div>

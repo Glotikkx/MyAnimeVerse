@@ -8,6 +8,7 @@ type TopAnimeMovies = {
   title: string;
   image: string;
   score: number;
+  genres: string[];
 };
 
 export default function TopAnimePage() {
@@ -36,6 +37,7 @@ export default function TopAnimePage() {
               coverImage {
                 large
               }
+                genres
             }
           }
         }
@@ -52,11 +54,12 @@ export default function TopAnimePage() {
 
         const data = await res.json();
 
-        const newAnime = data.data.Page.media.map((anime: { id: number; title: { romaji: string }; averageScore: number; coverImage: { large: string } }) => ({
+        const newAnime = data.data.Page.media.map((anime: { id: number; title: { romaji: string }; averageScore: number; coverImage: { large: string }; genres: {genres:string} }) => ({
           id: anime.id,
           title: anime.title.romaji,
           score: anime.averageScore,
           image: anime.coverImage.large,
+          genres: anime.genres,
         }));
 
         setTopAnime((prev) => [...prev, ...newAnime]);
@@ -93,7 +96,7 @@ export default function TopAnimePage() {
     <div className="p-6 bg-gray-900 text-white min-h-screen">
       <h1 className="text-3xl font-bold text-center mb-6">🔥 Top Anime Movies</h1>
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-        {topAnime.map(({ id, title, image, score }, index) => (
+        {topAnime.map(({ id, title, image, score, genres }, index) => (
           <motion.div
             key={id}
             className="bg-gray-800 p-3 rounded-lg border border-gray-700 shadow-sm"
@@ -110,6 +113,8 @@ export default function TopAnimePage() {
             />
             <h2 className="text-sm font-medium">{title}</h2>
             <p className="text-sm text-yellow-400">⭐ {score}/100</p>
+            <p className="text-xs text-gray-400">{genres.join(", ")}</p>
+
             <a
               href={`https://animepahe.ru/?search=${encodeURIComponent(title)}`}
               target="_blank"

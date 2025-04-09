@@ -8,6 +8,7 @@ type TopManga = {
   title: string;
   image: string;
   score: number;
+  genres: string[];
 };
 
 export default function TopMangaPage() {
@@ -37,6 +38,7 @@ export default function TopMangaPage() {
               coverImage {
                 large
               }
+                genres
             }
           }
         }
@@ -53,11 +55,12 @@ export default function TopMangaPage() {
 
         const data = await res.json();
 
-        const newManga = data.data.Page.media.map((manga: { id: number; title: { romaji: string }; averageScore: number; coverImage: { large: string } }) => ({
+        const newManga = data.data.Page.media.map((manga: { id: number; title: { romaji: string }; averageScore: number; coverImage: { large: string }; genres: {genres: string} }) => ({
           id: manga.id,
           title: manga.title.romaji,
           score: manga.averageScore,
           image: manga.coverImage.large,
+          genres: manga.genres,
         }));
 
         setTopManga((prev) => [...prev, ...newManga]);
@@ -94,7 +97,7 @@ export default function TopMangaPage() {
     <div className="p-6 bg-gray-900 text-white min-h-screen">
       <h1 className="text-3xl font-bold text-center mb-6">🔥 Top Manga</h1>
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-        {topManga.map(({ id, title, image, score }, index) => (
+        {topManga.map(({ id, title, image, score, genres }, index) => (
           <motion.div
             key={id}
             className="bg-gray-800 p-3 rounded-lg border border-gray-700 shadow-sm"
@@ -123,6 +126,8 @@ export default function TopMangaPage() {
               </button>
             </div>
             <p className="text-sm text-yellow-400">⭐ {score}/100</p>
+            <p className="text-xs text-gray-400">{genres.join(", ")}</p>
+
             <a
               href={`https://www.natomanga.com/`}
               target="_blank"
