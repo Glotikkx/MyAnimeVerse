@@ -10,16 +10,17 @@ type TopManga = {
   score: number;
 };
 
-export default function TopAnimePage() {
-  const [topAnime, setTopManga] = useState<TopManga[]>([]);
+export default function TopMangaPage() {
+  const [topManga, setTopManga] = useState<TopManga[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [hasNextPage, setHasNextPage] = useState(true);
   const [loading, setLoading] = useState(false);
   const observerRef = useRef<HTMLDivElement | null>(null);
-  
+  const [copiedId, setCopiedId] = useState<number | null>(null);
+
 
   useEffect(() => {
-    const fetchTopAnime = async (page: number) => {
+    const fetchTopManga = async (page: number) => {
       const query = `
         query ($page: Int) {
           Page(page: $page, perPage: 30) {
@@ -52,14 +53,14 @@ export default function TopAnimePage() {
 
         const data = await res.json();
 
-        const newAnime = data.data.Page.media.map((anime: { id: number; title: { romaji: string }; averageScore: number; coverImage: { large: string } }) => ({
-          id: anime.id,
-          title: anime.title.romaji,
-          score: anime.averageScore,
-          image: anime.coverImage.large,
+        const newManga = data.data.Page.media.map((manga: { id: number; title: { romaji: string }; averageScore: number; coverImage: { large: string } }) => ({
+          id: manga.id,
+          title: manga.title.romaji,
+          score: manga.averageScore,
+          image: manga.coverImage.large,
         }));
 
-        setTopManga((prev) => [...prev, ...newAnime]);
+        setTopManga((prev) => [...prev, ...newManga]);
         setHasNextPage(data.data.Page.pageInfo.hasNextPage);
       } catch (err) {
         console.error("Failed to fetch top manga:", err);
@@ -68,7 +69,7 @@ export default function TopAnimePage() {
       }
     };
 
-    fetchTopAnime(currentPage);
+    fetchTopManga(currentPage);
   }, [currentPage]);
 
   useEffect(() => {
@@ -93,7 +94,7 @@ export default function TopAnimePage() {
     <div className="p-6 bg-gray-900 text-white min-h-screen">
       <h1 className="text-3xl font-bold text-center mb-6">🔥 Top Manga</h1>
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-        {topAnime.map(({ id, title, image, score }, index) => (
+        {topManga.map(({ id, title, image, score }, index) => (
           <motion.div
             key={id}
             className="bg-gray-800 p-3 rounded-lg border border-gray-700 shadow-sm"
@@ -108,7 +109,19 @@ export default function TopAnimePage() {
               height={450}
               className="rounded-md object-cover mb-2"
             />
-            <h2 className="text-sm font-medium">{title}</h2>
+            <div className="flex items-center justify-between gap-2">
+              <h2 className="text-sm font-medium truncate">{title}</h2>
+              <button
+                onClick={async () => {
+                  await navigator.clipboard.writeText(title);
+                  setCopiedId(id);
+                  setTimeout(() => setCopiedId(null), 2000);
+                }}
+                className="text-white border border-gray-800 rounded-md px-2 py-1 text-xs transition duration-200 hover: bg-gray-900 focus:ring-2 focus:ring-blue-500"
+              >
+                {copiedId === id ? "Copied!" : "Copy Title"}
+              </button>
+            </div>
             <p className="text-sm text-yellow-400">⭐ {score}/100</p>
             <a
               href={`https://www.natomanga.com/`}
@@ -125,7 +138,7 @@ export default function TopAnimePage() {
       <div ref={observerRef} className="h-10 mt-10" />
 
       {loading && (
-        <div className="text-center text-gray-400 mt-4">Loading more anime...</div>
+        <div className="text-center text-gray-400 mt-4">Loading more manga...</div>
       )}
     </div>
   );

@@ -8,6 +8,7 @@ type TopAnime = {
   title: string;
   image: string;
   score: number;
+  genres: string[];
 };
 
 export default function TopAnimePage() {
@@ -16,7 +17,8 @@ export default function TopAnimePage() {
   const [hasNextPage, setHasNextPage] = useState(true);
   const [loading, setLoading] = useState(false);
   const observerRef = useRef<HTMLDivElement | null>(null);
-  
+  const [copiedId, setCopiedId] = useState<number | null>(null);
+
 
   useEffect(() => {
     const fetchTopAnime = async (page: number) => {
@@ -36,6 +38,7 @@ export default function TopAnimePage() {
               coverImage {
                 large
               }
+                genres
             }
           }
         }
@@ -52,11 +55,12 @@ export default function TopAnimePage() {
 
         const data = await res.json();
 
-        const newAnime = data.data.Page.media.map((anime: { id: number; title: { romaji: string }; averageScore: number; coverImage: { large: string } }) => ({
+        const newAnime = data.data.Page.media.map((anime: { id: number; title: { romaji: string }; averageScore: number; coverImage: { large: string }; genres: {genres: string} }) => ({
           id: anime.id,
           title: anime.title.romaji,
           score: anime.averageScore,
           image: anime.coverImage.large,
+          genres: anime.genres,
         }));
 
         setTopAnime((prev) => [...prev, ...newAnime]);
@@ -93,7 +97,7 @@ export default function TopAnimePage() {
     <div className="p-6 bg-gray-900 text-white min-h-screen">
       <h1 className="text-3xl font-bold text-center mb-6">🔥 Top Anime</h1>
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-        {topAnime.map(({ id, title, image, score }, index) => (
+        {topAnime.map(({ id, title, image, score, genres }, index) => (
           <motion.div
             key={id}
             className="bg-gray-800 p-3 rounded-lg border border-gray-700 shadow-sm"
@@ -108,8 +112,23 @@ export default function TopAnimePage() {
               height={450}
               className="rounded-md object-cover mb-2"
             />
-            <h2 className="text-sm font-medium">{title}</h2>
+            <div className="flex items-center justify-between gap-2">
+              <h2 className="text-sm font-medium truncate">{title}</h2>
+              <button
+                onClick={async () => {
+                  await navigator.clipboard.writeText(title);
+                  setCopiedId(id);
+                  setTimeout(() => setCopiedId(null), 2000);
+                }}
+                className="text-white border border-gray-800 rounded-md px-2 py-1 text-xs transition duration-200 hover: bg-gray-900 focus:ring-2 focus:ring-blue-500"
+              >
+                {copiedId === id ? "Copied!" : "Copy Title"}
+              </button>
+            </div>
+
             <p className="text-sm text-yellow-400">⭐ {score}/100</p>
+            <p className="text-xs text-gray-400">{genres.join(", ")}</p>
+
             <a
               href={`https://animepahe.ru/?search=${encodeURIComponent(title)}`}
               target="_blank"

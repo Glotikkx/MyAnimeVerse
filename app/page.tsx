@@ -18,7 +18,7 @@ export default function Home() {
   return (
     
     <div className="space-y-4 px-4 py-8">
-      <Image src = "/animeverse.png" alt = "Animeverse" width = {100} height = {100} className = "mx-auto"/>
+      <Image src = "/animeverse.png" alt = "Animeverse" width = {250} height = {300} className = "mx-auto"/>
 
       
       <h1 className="font-bold flex justify-center text-5xl text-gray-900 dark:text-gray-100">
